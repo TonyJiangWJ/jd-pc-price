@@ -1,3 +1,4 @@
+# encoding:"utf-8"
 import urllib3
 from bs4 import BeautifulSoup
 from operator import itemgetter
@@ -7,7 +8,7 @@ import codecs
 import certifi
 
 getPrice = "https://p.3.cn/prices/mgets?skuIds=J_"
-
+filePath = "/home/tony-jiang/Desktop/jdprice.md"
 
 def function_get_price(jkuid):
     http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
@@ -37,7 +38,7 @@ dict1050Evo = {"显卡": "3528459", "内存": "1945472", "CPU": "3701943", "主�
 
 
 def function_generate_markdown(dict, desc):
-    fd = codecs.open("C:/Users/TonyJiang/Desktop/jdprice.md", "a", "utf-8-sig")
+    fd = codecs.open(filePath, "a", "utf-8-sig")
     mdict = {}
     print("\n" + desc + " " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n==========\n|类型|名称|价格|")
     fd.write("\n\n" + desc + " " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n==========\n|类型|名称|价格|\n")
