@@ -8,5 +8,6 @@ cur = conn.cursor()
 cur.execute("select version()")
 data = cur.fetchone()
 print(data)
+
 cur.close()
 conn.close()
