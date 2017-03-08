@@ -38,26 +38,26 @@ dict1050Evo = {"显卡": "3528459", "内存": "1945472", "CPU": "3701943", "主�
 
 
 def function_generate_markdown(dict, desc):
-    fd = codecs.open(filePath, "a", "utf-8-sig")
+    # fd = codecs.open(filePath, "a", "utf-8-sig")
     mdict = {}
     print("\n" + desc + " " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n==========\n|类型|名称|价格|")
-    fd.write("\n\n" + desc + " " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n==========\n|类型|名称|价格|\n")
+    # fd.write("\n\n" + desc + " " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n==========\n|类型|名称|价格|\n")
     print("|:--------:|:------|: ------ :|")
-    fd.write("|:--------:|:------|: ------ :|\n")
+    # fd.write("|:--------:|:------|: ------ :|\n")
     items = sorted(dict.keys())
     for key in items:
         tempDict = function_get_price(dict[key])
         tempDict["商品名称"] = function_get_value_name(dict[key])["商品名称"]
         mdict[key] = tempDict
         print("|" + key + " |" + tempDict['商品名称'] + " |" + tempDict['price'] + "|")
-        fd.write("|" + key + " |" + tempDict['商品名称'] + " |" + tempDict['price'] + "|\n")
+        # fd.write("|" + key + " |" + tempDict['商品名称'] + " |" + tempDict['price'] + "|\n")
     total = 0
     for item in mdict:
         p = mdict[item]
         total += float(p["price"])
     print("|||" + str(total) + "|")
-    fd.write("|||" + str(total) + "|\n")
-    fd.close()
+    # fd.write("|||" + str(total) + "|\n")
+    # fd.close()
 
 
 function_generate_markdown(dict1070Pro, "1070主机豪华")
