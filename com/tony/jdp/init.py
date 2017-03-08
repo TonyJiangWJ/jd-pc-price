@@ -11,6 +11,7 @@ getPrice = "https://p.3.cn/prices/mgets?skuIds=J_"
 filePath = "/home/tony-jiang/Desktop/jdprice.md"
 
 def function_get_price(jkuid):
+    getPrice = "https://p.3.cn/prices/mgets?skuIds=J_"
     http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
     respPrice = http.request("GET", getPrice + jkuid)
     priceJsonStr = respPrice.data.decode('utf8')

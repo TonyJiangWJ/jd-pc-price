@@ -10,6 +10,12 @@ import certifi
 
 
 class Object:
+    jkuid = ""
+    tid = 0
+    obj_name = ""
+    type_id = -1
+    type_name = ""
+
     def __init__(self):
         self.jkuid = ""
         self.tid = 0
@@ -17,12 +23,23 @@ class Object:
         self.type_id = -1
         self.type_name = ""
 
+    def __init__(self, t: tuple):
+        self.jkuid = t[0]
+        self.tid = t[1]
+        self.obj_name = t[2]
+        self.type_id = t[3]
+        self.type_name = t[4]
+
+    def to_string(self):
+        return self.jkuid + str(self.tid) + self.obj_name + self.type_name + str(self.type_id)
+
 
 class ObjectHisPrice:
     tid = 0
-    price = 0
+    price = 0.0
     suit_history_id = ""
     create_time = ""
+    obj_id = 0
 
 
 class Suit:
@@ -100,6 +117,15 @@ def execute_query_sql(sql: str):
     return result[0]
 
 
+def execute_query_list_sql(sql: str):
+    print("query list sql:", sql)
+    connect = get_connected()
+    cursor = connect.cursor()
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    return result
+
+
 def save_suit(suit):
     sql = "insert into t_suit (suit_name,cpu_id,gpu_id,ram_id,ram_id,power_id,box_id,main_board_id,ssd_id," + \
           "hddk_id,coller_id) values('" + suit.suit_name + "','" + suit.cpu + "','" + suit.gpu + "','" + suit.ram + "','" + suit.power + "','" + \
@@ -107,9 +133,9 @@ def save_suit(suit):
     execute_sql(sql)
 
 
-def save_object_his_price(object_his_price):
-    sql = "insert into t_object_history_price (price,t_suit_history_id) values(" + object_his_price.price + "," + \
-          object_his_price.suit_history_id + ")"
+def save_object_his_price(object_his_price:ObjectHisPrice):
+    sql = "insert into t_object_history_price (price,t_suit_history_id,obj_id) values('" + str(object_his_price.price) + "','" + \
+          str(object_his_price.suit_history_id) + "','"+str(object_his_price.obj_id)+"')"
     execute_sql(sql)
 
 
@@ -128,33 +154,13 @@ def save_object(arg: Object):
     execute_sql(sql)
 
 
-## test functions
-#
-# obj = Object()
-# obj.obj_name = "testObject"
-# obj.jkuid = "123456"
-# print(obj.obj_name + "," + obj.jkuid)
-#
-# # sql = "insert into t_object (jkuid,obj_name) values( '"+obj.jkuid+"','"+obj.obj_name+"')"
-# # sql2 = "insert into t_object (jkuid,obj_name) values( 123456,test)"
-# # try:
-# # 	cursor = connect.cursor();
-# # 	cursor.execute(sql)
-# # 	connect.commit()
-# # 	print("success")
-# # except:
-# # 	print("fail")
-# # 	connect.rollback()
-#
-# # connect.close()
-#
-# test = test()
-# print(test.ni + " " + test.ma)
-# # saveObject(obj,connect)
-# ## end test
-
-
-
+def get_price(jkuid):
+    get_price_url = "https://p.3.cn/prices/mgets?skuIds=J_"
+    http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+    resp_price = http.request("GET", get_price_url + jkuid)
+    price_json_str = resp_price.data.decode('utf8')
+    price_json = json.loads(price_json_str)
+    return price_json[0]['p']
 
 
 def get_good_name(jkUid):
@@ -167,18 +173,40 @@ def get_good_name(jkUid):
 
 
 def get_type_id_by_type_name(type_name):
-    sql = "select tid from t_type where type_desc='" + type_name + "'"
+    sql = "SELECT tid FROM t_type WHERE type_desc='" + type_name + "'"
     return execute_query_sql(sql)
 
 
+def temp_query_list():
+    sql = "SELECT * FROM t_object"
+    return execute_query_list_sql(sql)
+
+
+def parse_to_obj():
+    obj_list = [Object]
+    tuple_obj = temp_query_list()
+    for tup in tuple_obj:
+        obj = Object(tup)
+        # print(obj.to_string())
+        obj_list.append(obj)
+        # print(type(tup))
+
+    i = 0
+    for obj in obj_list:
+        if (obj.jkuid != ""):
+            obj_his = ObjectHisPrice()
+            print(obj.jkuid)
+            obj_his.obj_id=obj.tid
+            obj_his.price=float(get_price(obj.jkuid))
+            obj_his.suit_history_id=-1
+            save_object_his_price(obj_his)
+
+
+# print(type(get_price("689273")))
+parse_to_obj()
 #
-for a in dict1070Pro:
-    print(dict1070Pro[a])
-    obj = Object()
-    obj.jkuid = dict1070Pro[a]
-    obj.type_name = a
-    save_object(obj)
-# print(type(get_type_id_by_type_name("内存")))
+
+# # print(type(get_type_id_by_type_name("内存")))
 
 # print(numbers_to_strings(2))
 
@@ -197,7 +225,7 @@ for a in dict1070Pro:
 #     switcher = {
 #         0: zero,
 #         1: one,
-#         2: lambda: "two",
+#         2: lambda x: print(x),
 #     }
 #     # Get the function from switcher dictionary
 #     func = switcher[argument]
@@ -205,4 +233,13 @@ for a in dict1070Pro:
 #     return func(v)
 #
 #
-# print(numbers_to_functions_to_strings(1, "test"))
+# numbers_to_functions_to_strings(2, "test")
+#
+#
+# switcher = {
+#     0: zero,
+#     1: one,
+#     2: lambda: "two",
+# }
+#
+# # print(type(switcher[0]))
