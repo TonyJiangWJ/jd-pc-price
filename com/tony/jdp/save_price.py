@@ -206,40 +206,4 @@ def parse_to_obj():
 parse_to_obj()
 #
 
-# # print(type(get_type_id_by_type_name("内存")))
 
-# print(numbers_to_strings(2))
-
-# # Switcher Example
-#
-# def zero(v):
-#     return "zero" + v
-#
-#
-# def one(v):
-#     print("one" + v)
-#     return "one" + v
-#
-#
-# def numbers_to_functions_to_strings(argument, v):
-#     switcher = {
-#         0: zero,
-#         1: one,
-#         2: lambda x: print(x),
-#     }
-#     # Get the function from switcher dictionary
-#     func = switcher[argument]
-#     # Execute the function
-#     return func(v)
-#
-#
-# numbers_to_functions_to_strings(2, "test")
-#
-#
-# switcher = {
-#     0: zero,
-#     1: one,
-#     2: lambda: "two",
-# }
-#
-# # print(type(switcher[0]))
