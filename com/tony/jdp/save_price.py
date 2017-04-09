@@ -24,8 +24,8 @@ class Object:
         self.type_name = ""
 
     def __init__(self, t: tuple):
-        self.jkuid = t[0]
-        self.tid = t[1]
+        self.jkuid = t[1]
+        self.tid = t[0]
         self.obj_name = t[2]
         self.type_id = t[3]
         self.type_name = t[4]
@@ -54,6 +54,10 @@ class Suit:
     ssd = 0
     hddk = 0
     cooler = 0
+
+    def print(self):
+        print(self.tid, self.suit_name, self.gpu, self.cpu, self.ram, self.power,
+              self.box, self.main_board, self.ssd, self.hddk, self.cooler)
 
 
 class SuitHistory:
@@ -114,7 +118,10 @@ def execute_query_sql(sql: str):
     cursor.execute(sql)
     result = cursor.fetchone()
     close_connection(connect)
-    return result[0]
+    if result is not None:
+        return result[0]
+    else:
+        return "-1"
 
 
 def execute_query_list_sql(sql: str):
@@ -127,15 +134,18 @@ def execute_query_list_sql(sql: str):
 
 
 def save_suit(suit):
-    sql = "insert into t_suit (suit_name,cpu_id,gpu_id,ram_id,ram_id,power_id,box_id,main_board_id,ssd_id," + \
-          "hddk_id,coller_id) values('" + suit.suit_name + "','" + suit.cpu + "','" + suit.gpu + "','" + suit.ram + "','" + suit.power + "','" + \
-          suit.box + "','" + suit.main_board + "','" + suit.ssd + "','" + suit.hddk + "','" + suit.cooler + "')"
+    sql = "insert into t_suit (suit_name,cpu_id,gpu_id,ram_id,power_id,box_id,main_board_id,ssd_id," + \
+          "hddk_id,cooler_id) values('" + str(suit.suit_name) + "','" + str(suit.cpu) + "','" + str(
+        suit.gpu) + "','" + str(suit.ram) + "','" + str(suit.power) + "','" + \
+          str(suit.box) + "','" + str(suit.main_board) + "','" + str(suit.ssd) + "','" + str(suit.hddk) + "','" + str(
+        suit.cooler) + "')"
     execute_sql(sql)
 
 
-def save_object_his_price(object_his_price:ObjectHisPrice):
-    sql = "insert into t_object_history_price (price,t_suit_history_id,obj_id) values('" + str(object_his_price.price) + "','" + \
-          str(object_his_price.suit_history_id) + "','"+str(object_his_price.obj_id)+"')"
+def save_object_his_price(object_his_price: ObjectHisPrice):
+    sql = "insert into t_object_history_price (price,t_suit_history_id,obj_id) values('" + str(
+        object_his_price.price) + "','" + \
+          str(object_his_price.suit_history_id) + "','" + str(object_his_price.obj_id) + "')"
     execute_sql(sql)
 
 
@@ -154,13 +164,16 @@ def save_object(arg: Object):
     execute_sql(sql)
 
 
-def get_price(jkuid):
+def get_price(jkuid: str):
     get_price_url = "https://p.3.cn/prices/mgets?skuIds=J_"
     http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
     resp_price = http.request("GET", get_price_url + jkuid)
     price_json_str = resp_price.data.decode('utf8')
-    price_json = json.loads(price_json_str)
-    return price_json[0]['p']
+    try:
+        price_json = json.loads(price_json_str)
+        return price_json[0]['p']
+    except:
+        return None
 
 
 def get_good_name(jkUid):
@@ -182,6 +195,7 @@ def temp_query_list():
     return execute_query_list_sql(sql)
 
 
+# 从数据库提取数据，并从京东获取价格信息
 def parse_to_obj():
     obj_list = [Object]
     tuple_obj = temp_query_list()
@@ -196,14 +210,63 @@ def parse_to_obj():
         if (obj.jkuid != ""):
             obj_his = ObjectHisPrice()
             print(obj.jkuid)
-            obj_his.obj_id=obj.tid
-            obj_his.price=float(get_price(obj.jkuid))
-            obj_his.suit_history_id=-1
-            save_object_his_price(obj_his)
+            obj_his.obj_id = obj.tid
+            try:
+                obj_his.price = float(get_price(str(obj.jkuid)))
+                obj_his.suit_history_id = -1
+                save_object_his_price(obj_his)
+            except:
+                print("error")
 
 
 # print(type(get_price("689273")))
+# print(get_price("689273"))
 parse_to_obj()
-#
 
 
+# {"显卡": "3528459", "内存": "1945472", "CPU": "3701943", "主板": "3775065", "机箱": "3303012", "电源": "251340",
+#               "固态": "2639360", "机械": "1540142634", "散热器": "2771147"}
+
+def get_tid_by_jkuid(jkuid):
+    sql = "select tid from t_object where jkuid='" + jkuid + "'"
+    return execute_query_sql(sql)
+
+
+def convert_suit_object(suit: dict, suit_name):
+    suit_obj = Suit()
+    suit_obj.suit_name = suit_name
+    for key in suit:
+        val = get_tid_by_jkuid(suit[key])
+        if key == "显卡":
+            suit_obj.gpu = val
+        else:
+            if key == "内存":
+                suit_obj.ram = val
+            else:
+                if key == "CPU":
+                    suit_obj.cpu = val
+                else:
+                    if key == "主板":
+                        suit_obj.main_board = val
+                    else:
+                        if key == "机箱":
+                            suit_obj.box = val
+                        else:
+                            if key == "电源":
+                                suit_obj.power = val
+                            else:
+                                if key == "固态":
+                                    suit_obj.ssd = val
+                                else:
+                                    if key == "机械":
+                                        suit_obj.hddk = val
+                                    else:
+                                        if key == "散热器":
+                                            suit_obj.cooler = val
+
+    suit_obj.print()
+    save_suit(suit_obj)
+
+
+    # convert_suit_object(dict1050Evo,"1050Evo")
+    # convert_suit_object(dict1060Evo,"1060Evo")
